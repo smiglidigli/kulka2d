@@ -13,14 +13,12 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.media.Image;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.view.Display;
-import android.view.LayoutInflater;
 import android.view.Surface;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,12 +27,8 @@ import android.view.animation.Animation;
 import android.view.animation.RotateAnimation;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
-import android.widget.TextView;
-
 import java.util.HashMap;
 import java.util.Map;
-import java.util.zip.Inflater;
-
 import static java.lang.Math.abs;
 
 
@@ -50,10 +44,11 @@ public class MainActivity extends Activity implements SensorEventListener{
     private float targetX;
     private float targetY;
     private int score = 0;
-    // record the compass picture angle turned
     private float currentDegree = 0f;
-    //TextView tvHeading;
+    //compass with the help of https://www.javacodegeeks.com/2013/09/android-compass-code-example.html
     private ImageView compassImage;
+    float yOrientation;
+    float zOrientation;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -70,10 +65,6 @@ public class MainActivity extends Activity implements SensorEventListener{
         setContentView(mGameView);
         compassImage = new ImageView(this);
         compassImage.setImageResource(R.drawable.compass);
-//        LayoutInflater inflater = getLayoutInflater();
-//        View v = inflater.inflate(R.layout.activity_main, mGameView,false);
-//        View compassImage = v.findViewById(R.id.imageViewCompass);
-        //tvHeading = findViewById(R.id.tvHeading);
         addContentView(compassImage,new ViewGroup.LayoutParams(250,250));
 
     }
@@ -100,24 +91,18 @@ public class MainActivity extends Activity implements SensorEventListener{
     public void onSensorChanged(SensorEvent event) {
         // get the angle around the z-axis rotated
         float degree = Math.round(event.values[0]);
-//        try {
-//            tvHeading.setText("Heading: " + Float.toString(degree) + " degrees");
-//        }
-//        catch(Exception e){}
+        yOrientation = Math.round(event.values[1]);
+        zOrientation = Math.round(event.values[2]);
         // create a rotation animation (reverse turn degree degrees)
         RotateAnimation ra = new RotateAnimation(currentDegree, -degree,
                 Animation.RELATIVE_TO_SELF, 0.5f,
                 Animation.RELATIVE_TO_SELF, 0.5f);
-
         // how long the animation will take place
         ra.setDuration(210);
-
         // set the animation after the end of the reservation status
         ra.setFillAfter(true);
         // Start the animation
-        //try{
         compassImage.startAnimation(ra);
-        //}catch(Exception e) {}
         currentDegree = -degree;
     }
 
@@ -397,9 +382,12 @@ public class MainActivity extends Activity implements SensorEventListener{
             final int width = this.getWidth() / 2;
             final int height = this.getHeight() / 2;
             Paint paint = new Paint();
+            Paint paintOrientation = new Paint();
 
             environment.update(sx, sy, now);
 
+            paintOrientation.setTextSize(100f);
+            paintOrientation.setColor(Color.RED);
             paint.setTextSize(30f);
             paint.setColor(Color.BLACK);
             paint.setStrokeWidth(3);
@@ -416,6 +404,7 @@ public class MainActivity extends Activity implements SensorEventListener{
             final float xs = metersToPixelsX;
             final float ys = metersToPixelsY;
 
+            canvas.drawText(Helpers.GetOrientation(yOrientation, zOrientation), xc, 600, paintOrientation);
             canvas.drawText("score: " + score, 300, 30, paint);
             float targetXTranslated = originX + (originX * targetX / horizontalBoundary);
             float targetYTranslated = originY - (originY * targetY / verticalBoundary);
@@ -430,6 +419,8 @@ public class MainActivity extends Activity implements SensorEventListener{
                 canvas.drawText("targetY trans: " + targetYTranslated, 0, 140, paint);
                 canvas.drawText("sensorX: " + sensorX, 0, 165, paint);
                 canvas.drawText("sensorY: " + sensorY, 0, 190, paint);
+                canvas.drawText("yOrientation: " + yOrientation, 0, 215, paint);
+                canvas.drawText("zOrientation: " + zOrientation, 0, 240, paint);
             }
             final float x = xc + environment.getPosX() * xs;
             final float y = yc - environment.getPosY() * ys;

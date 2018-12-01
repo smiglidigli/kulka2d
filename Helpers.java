@@ -32,4 +32,13 @@ public class Helpers extends Object {
         else return false;
     }
 
+    public static String GetOrientation(float y, float z){
+        if (y > 70f) return "V";
+        else if (y < -70f) return "^";
+        else if (z > 70f) return ">";
+        else if (z<-70f) return "<";
+        else return"o";
+
+    }
+
 }
