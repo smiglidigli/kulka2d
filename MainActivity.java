@@ -13,25 +13,32 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.media.Image;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.view.Display;
+import android.view.LayoutInflater;
 import android.view.Surface;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.view.animation.Animation;
+import android.view.animation.RotateAnimation;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
+import android.widget.TextView;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.zip.Inflater;
 
 import static java.lang.Math.abs;
 
 
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements SensorEventListener{
 
     private GameView mGameView;
     private SensorManager mSensorManager;
@@ -39,10 +46,16 @@ public class MainActivity extends Activity {
     private WindowManager mWindowManager;
     private Display mDisplay;
     private WakeLock mWakeLock;
-    private boolean DEBUG = true;
+    private boolean DEBUG = false;
     private float targetX;
     private float targetY;
     private int score = 0;
+    // record the compass picture angle turned
+    private float currentDegree = 0f;
+    //TextView tvHeading;
+    private ImageView compassImage;
+
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -57,6 +70,13 @@ public class MainActivity extends Activity {
         mGameView = new GameView(this);
         mGameView.setBackgroundResource(R.drawable.grass);
         setContentView(mGameView);
+        compassImage = new ImageView(this);
+        compassImage.setImageResource(R.drawable.compass);
+//        LayoutInflater inflater = getLayoutInflater();
+//        View v = inflater.inflate(R.layout.activity_main, mGameView,false);
+//        View compassImage = v.findViewById(R.id.imageViewCompass);
+        //tvHeading = findViewById(R.id.tvHeading);
+        addContentView(compassImage,new ViewGroup.LayoutParams(250,250));
 
     }
 
@@ -64,7 +84,9 @@ public class MainActivity extends Activity {
     protected void onResume() {
         super.onResume();
         mWakeLock.acquire();
+        mSensorManager.registerListener( this, mSensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION), SensorManager.SENSOR_DELAY_GAME);
         mGameView.startSimulation();
+
     }
 
     @Override
@@ -72,6 +94,38 @@ public class MainActivity extends Activity {
         super.onPause();
         mGameView.stopSimulation();
         mWakeLock.release();
+        mSensorManager.unregisterListener( this);
+    }
+
+
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+        // get the angle around the z-axis rotated
+        float degree = Math.round(event.values[0]);
+//        try {
+//            tvHeading.setText("Heading: " + Float.toString(degree) + " degrees");
+//        }
+//        catch(Exception e){}
+        // create a rotation animation (reverse turn degree degrees)
+        RotateAnimation ra = new RotateAnimation(currentDegree, -degree,
+                Animation.RELATIVE_TO_SELF, 0.5f,
+                Animation.RELATIVE_TO_SELF, 0.5f);
+
+        // how long the animation will take place
+        ra.setDuration(210);
+
+        // set the animation after the end of the reservation status
+        ra.setFillAfter(true);
+        // Start the animation
+        //try{
+        compassImage.startAnimation(ra);
+        //}catch(Exception e) {}
+        currentDegree = -degree;
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+
     }
 
 
@@ -95,6 +149,34 @@ public class MainActivity extends Activity {
         private float horizontalBoundary;
         private float verticalBoundary;
         private final Environment environment;
+
+        public GameView(Context context, int dstWidth, int dstHeight, Environment environment) {
+            super(context);
+            this.dstWidth = dstWidth;
+            this.dstHeight = dstHeight;
+            this.environment = environment;
+        }
+
+        public GameView(Context context, AttributeSet attrs, int dstWidth, int dstHeight, Environment environment) {
+            super(context, attrs);
+            this.dstWidth = dstWidth;
+            this.dstHeight = dstHeight;
+            this.environment = environment;
+        }
+
+        public GameView(Context context, AttributeSet attrs, int defStyleAttr, int dstWidth, int dstHeight, Environment environment) {
+            super(context, attrs, defStyleAttr);
+            this.dstWidth = dstWidth;
+            this.dstHeight = dstHeight;
+            this.environment = environment;
+        }
+
+        public GameView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes, int dstWidth, int dstHeight, Environment environment) {
+            super(context, attrs, defStyleAttr, defStyleRes);
+            this.dstWidth = dstWidth;
+            this.dstHeight = dstHeight;
+            this.environment = environment;
+        }
 
         public void CreateTarget() {
             float[] target = Helpers.CreateRandomTargetCoordinates(horizontalBoundary, verticalBoundary
@@ -255,6 +337,8 @@ public class MainActivity extends Activity {
 
         public GameView(Context context) {
             super(context);
+
+
             accelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 
             DisplayMetrics metrics = new DisplayMetrics();
