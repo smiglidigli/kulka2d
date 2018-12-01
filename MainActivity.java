@@ -55,8 +55,6 @@ public class MainActivity extends Activity implements SensorEventListener{
     //TextView tvHeading;
     private ImageView compassImage;
 
-
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

@@ -23,12 +23,12 @@ public class Helpers extends Object {
 
         Random rand = new Random();
 
-        return rand.nextFloat() * (maxX - minX) + 0.9f * minX;
+        return rand.nextFloat() * (maxX - 0.7f * minX) + 0.7f * minX;
     }
 
     private static boolean IsValidCoord(float coord, double min, double max)
     {
-        if (coord < min || coord > max) return true;
+        if (coord < 1.2f * min || coord > 1.2 * max) return true;
         else return false;
     }
 
