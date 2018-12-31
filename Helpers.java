@@ -2,6 +2,9 @@ package com.example.m.kulka2d;
 
 import java.util.Random;
 
+import static java.lang.Math.min;
+import static java.lang.Math.max;
+
 public class Helpers extends Object {
 
     public static float[] CreateRandomTargetCoordinates(float width, float height
@@ -41,4 +44,15 @@ public class Helpers extends Object {
 
     }
 
+    public static double UniversalRandom(int i_from, int i_to) {
+        return (Math.random() * (Math.abs(i_from - i_to))) + Math.min(i_from, i_to);
+    }
+
+    public static boolean IsBetween(int value, int min, int max) {
+        return value >= min && value <= max;
+    }
+
+    public static boolean IsBetween(float value, double min, double max) {
+        return value >= min(min,max) && value <= max(min,max);
+    }
 }
