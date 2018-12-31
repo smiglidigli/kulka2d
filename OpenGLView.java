@@ -1,5 +1,6 @@
 package com.example.m.kulka2d;
 import android.content.Context;
+import android.graphics.PixelFormat;
 import android.opengl.GLSurfaceView;
 import android.view.MotionEvent;
 
@@ -15,6 +16,7 @@ public class OpenGLView extends GLSurfaceView {
 
         mRenderer = new OpenGLRenderer4();
         this.setRenderer(mRenderer);
+        getHolder().setFormat(PixelFormat.TRANSLUCENT);
     }
 
     @Override

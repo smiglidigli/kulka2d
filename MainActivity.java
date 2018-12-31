@@ -27,6 +27,7 @@ import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.view.Display;
 import android.view.Surface;
+import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
@@ -34,6 +35,7 @@ import android.view.animation.Animation;
 import android.view.animation.RotateAnimation;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.SeekBar;
 
 import java.nio.FloatBuffer;
 import java.util.HashMap;
@@ -84,6 +86,69 @@ public class MainActivity extends Activity implements SensorEventListener {
 
     private OpenGLView mOpenGLView;
 
+    public float ballScale = 1f;
+    SeekBar ballScaleBar;
+
+    private  int dstWidth;
+    private  int dstHeight;
+
+    private static int AXIAL_TILT_DEGREES = 30;
+
+    /**
+     * Clear colour, alpha component.
+     */
+    private static final float CLEAR_RED = 0.0f;
+
+    /**
+     * Clear colour, alpha component.
+     */
+    private static final float CLEAR_GREEN = 0.0f;
+
+    /**
+     * Clear colour, alpha component.
+     */
+    private static final float CLEAR_BLUE = 0.0f;
+
+    /**
+     * Clear colour, alpha component.
+     */
+    private static final float CLEAR_ALPHA = 0.0f;
+
+    /**
+     * Perspective setup, field of view component.
+     */
+    private static final float FIELD_OF_VIEW_Y = 25.0f;
+
+    /**
+     * Perspective setup, near component.
+     */
+    private static final float Z_NEAR = 0.1f;
+
+    /**
+     * Perspective setup, far component.
+     */
+    private static final float Z_FAR = 100.0f;
+
+    /**
+     * Object distance on the screen. move it back a bit so we can see it!
+     */
+    private static final float OBJECT_DISTANCE = -10.0f;
+
+    /**
+     * The earth's sphere.
+     */
+    private EarthSphere mEarth;
+
+    /**
+     * The context.
+     */
+    private Context mContext;
+
+    /**
+     * The rotation angle, just to give the screen some action.
+     */
+    private float mRotationAngle;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -101,6 +166,10 @@ public class MainActivity extends Activity implements SensorEventListener {
         compassImage.setImageResource(R.drawable.compass);
         addContentView(compassImage, new ViewGroup.LayoutParams(250, 250));
 
+        ballScaleBar = new SeekBar(this);
+        addContentView(ballScaleBar, new ViewGroup.LayoutParams(250, 100));
+        ballScaleBar.setOnSeekBarChangeListener(seekBarChangeListener);
+
 //        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
 //                WindowManager.LayoutParams.FLAG_FULLSCREEN);
 //
@@ -109,6 +178,29 @@ public class MainActivity extends Activity implements SensorEventListener {
 //        addContentView(view, new ViewGroup.LayoutParams(250, 250));
         //setContentView(view);
     }
+
+    SeekBar.OnSeekBarChangeListener seekBarChangeListener = new SeekBar.OnSeekBarChangeListener() {
+
+        @Override
+        public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+            // updated continuously as the user slides the thumb
+            ballScale = 1 + (float)progress/25f;
+            android.view.ViewGroup.LayoutParams lp = golfBall.getLayoutParams();
+            lp.height = (int)(dstHeight * ballScale);
+            lp.width = (int)(dstWidth * ballScale);
+            golfBall.setLayoutParams(lp);
+        }
+
+        @Override
+        public void onStartTrackingTouch(SeekBar seekBar) {
+            // called when the user first touches the SeekBar
+        }
+
+        @Override
+        public void onStopTrackingTouch(SeekBar seekBar) {
+            // called after the user finishes moving the SeekBar
+        }
+    };
 
     @Override
     protected void onResume() {
@@ -143,8 +235,9 @@ public class MainActivity extends Activity implements SensorEventListener {
         // set the animation after the end of the reservation status
         ra.setFillAfter(true);
         // Start the animation
-        compassImage.startAnimation(ra);
-        currentDegree = -degree;
+        compassImage.setVisibility(View.INVISIBLE);
+//        compassImage.startAnimation(ra);
+//        currentDegree = -degree;
     }
 
     @Override
@@ -156,8 +249,7 @@ public class MainActivity extends Activity implements SensorEventListener {
     class GameView extends FrameLayout implements SensorEventListener {
         private static final float ballDiameter = 0.01f;
 
-        private final int dstWidth;
-        private final int dstHeight;
+
 
         private Sensor accelerometer;
         private long lastT;
@@ -176,29 +268,29 @@ public class MainActivity extends Activity implements SensorEventListener {
 
         public GameView(Context context, int dstWidth, int dstHeight, Environment environment) {
             super(context);
-            this.dstWidth = dstWidth;
-            this.dstHeight = dstHeight;
+//            this.dstWidth = dstWidth;
+//            this.dstHeight = dstHeight;
             this.environment = environment;
         }
 
         public GameView(Context context, AttributeSet attrs, int dstWidth, int dstHeight, Environment environment) {
             super(context, attrs);
-            this.dstWidth = dstWidth;
-            this.dstHeight = dstHeight;
+//            this.dstWidth = dstWidth;
+//            this.dstHeight = dstHeight;
             this.environment = environment;
         }
 
         public GameView(Context context, AttributeSet attrs, int defStyleAttr, int dstWidth, int dstHeight, Environment environment) {
             super(context, attrs, defStyleAttr);
-            this.dstWidth = dstWidth;
-            this.dstHeight = dstHeight;
+//            this.dstWidth = dstWidth;
+//            this.dstHeight = dstHeight;
             this.environment = environment;
         }
 
         public GameView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes, int dstWidth, int dstHeight, Environment environment) {
             super(context, attrs, defStyleAttr, defStyleRes);
-            this.dstWidth = dstWidth;
-            this.dstHeight = dstHeight;
+//            this.dstWidth = dstWidth;
+//            this.dstHeight = dstHeight;
             this.environment = environment;
         }
 
@@ -258,7 +350,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 
                 float newXPosition = CalculateCoordsOnScreen(BORDER_THICKNESS, true);
                 float newYPosition = CalculateCoordsOnScreen(BORDER_THICKNESS, false);
-                float obstacleThickness = CalculateCoordsOnScreen(dstWidth, true);
+                float obstacleThickness = CalculateCoordsOnScreen(dstWidth * ballScale, true);
 
                 if (x + obstacleThickness > xMax - newXPosition) {
                     positionX = xMax - newXPosition - obstacleThickness;
@@ -269,7 +361,7 @@ public class MainActivity extends Activity implements SensorEventListener {
                     velocityX = (float) (-velocityX + Helpers.UniversalRandom(-1, 1)) * 3;
                     directionX = -java.lang.Math.signum(directionX) * Helpers.UniversalRandom(-1, 1) * 2;
                 }
-                if (y  + obstacleThickness> yMax - newYPosition) {
+                if (y + obstacleThickness > yMax - newYPosition) {
                     positionY = yMax - newYPosition - obstacleThickness;
                     velocityY = (float) (-velocityY + Helpers.UniversalRandom(-1, 1)) * 3;
                     directionY = -java.lang.Math.signum(directionY) * Helpers.UniversalRandom(-1, 1) * 2;
@@ -355,6 +447,8 @@ public class MainActivity extends Activity implements SensorEventListener {
                 setEGLConfigChooser(8, 8, 8, 8, 16, 0);
                 getHolder().setFormat(PixelFormat.TRANSLUCENT);
                 this.isObstacle = isObstacle;
+                mContext = context;
+                mEarth = new EarthSphere(3, 2);
             }
 
             public GolfBall(Context context, AttributeSet attrs, boolean isObstacle) {
@@ -362,6 +456,8 @@ public class MainActivity extends Activity implements SensorEventListener {
                 setZOrderOnTop(true);
                 setEGLConfigChooser(8, 8, 8, 8, 16, 0);
                 getHolder().setFormat(PixelFormat.TRANSLUCENT);
+                mContext = context;
+                mEarth = new EarthSphere(3, 2);
                 this.isObstacle = isObstacle;
             }
 
@@ -427,10 +523,10 @@ public class MainActivity extends Activity implements SensorEventListener {
             public void resolveCollisionWithObstacles() {
 //                final float obstacleX = horizontalBoundary / 2;
 //                final float obstacleY = verticalBoundary / 2;
-                float leftBorder = obstacleX - CalculateCoordsOnScreen(dstWidth * 1, true);
-                float rightBorder = obstacleX + CalculateCoordsOnScreen(dstWidth * 1, true);
-                float topBorder = -obstacleY - CalculateCoordsOnScreen(dstHeight, true);
-                float bottomBorder = -obstacleY + CalculateCoordsOnScreen(dstHeight, true);
+                float leftBorder = obstacleX - CalculateCoordsOnScreen(dstWidth * ballScale, true);
+                float rightBorder = obstacleX + CalculateCoordsOnScreen(dstWidth * ballScale, true);
+                float topBorder = -obstacleY - CalculateCoordsOnScreen(dstHeight* ballScale, true);
+                float bottomBorder = -obstacleY + CalculateCoordsOnScreen(dstHeight* ballScale, true);
                 final float x = positionX;
                 final float y = positionY;
 
@@ -485,105 +581,145 @@ public class MainActivity extends Activity implements SensorEventListener {
             //private Sphere mSphere = new Sphere();
 
             @Override
-            public void onSurfaceCreated(GL10 gl, EGLConfig config) {
-                GLES20.glClearColor(0.2f, 0.5f, 0.1f, 1.0f);
+            public void onDrawFrame(final GL10 gl) {
+                gl.glClearColor(0.5f, 0.5f, 0.5f, 0.0f);
+                gl.glClear(GL10.GL_COLOR_BUFFER_BIT | GL10.GL_DEPTH_BUFFER_BIT);
+                gl.glLoadIdentity();
+                gl.glTranslatef(0.0f, 0.0f, OBJECT_DISTANCE);
+                gl.glRotatef(mCubeRotationAngleXBall, 1, 0, 0);
+                gl.glRotatef(mCubeRotationAngleYBall, 0, 1, 0);
+                mEarth.draw(gl);
+            }
 
-                GLES20.glEnable(GLES20.GL_CULL_FACE);
-                GLES20.glEnable(GLES20.GL_DEPTH_TEST);
-                GLES20.glDepthFunc(GLES20.GL_LEQUAL);
-                GLES20.glDepthMask(true);
+            @Override
+            public void onSurfaceChanged(final GL10 gl, final int width, final int height) {
+                final float aspectRatio = (float) width / (float) (height == 0 ? 1 : height);
 
+                gl.glViewport(0, 0, width, height);
+                gl.glMatrixMode(GL10.GL_PROJECTION);
+                gl.glLoadIdentity();
+                GLU.gluPerspective(gl, FIELD_OF_VIEW_Y, aspectRatio, Z_NEAR, Z_FAR);
+                gl.glMatrixMode(GL10.GL_MODELVIEW);
+                gl.glLoadIdentity();
+            }
 
-                loadTexture(this.getContext());//,R.drawable.golfball);
-
-                gl.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-
+            @Override
+            public void onSurfaceCreated(final GL10 gl, final EGLConfig config) {
+                mEarth.loadGLTexture(gl, mContext, R.drawable.earth);
+                gl.glEnable(GL10.GL_TEXTURE_2D);
+                gl.glShadeModel(GL10.GL_SMOOTH);
+                gl.glClearColor(CLEAR_RED, CLEAR_GREEN, CLEAR_BLUE, CLEAR_ALPHA);
                 gl.glClearDepthf(1.0f);
                 gl.glEnable(GL10.GL_DEPTH_TEST);
                 gl.glDepthFunc(GL10.GL_LEQUAL);
-
-                gl.glHint(GL10.GL_PERSPECTIVE_CORRECTION_HINT,
-                        GL10.GL_NICEST);
-
+                gl.glHint(GL10.GL_PERSPECTIVE_CORRECTION_HINT, GL10.GL_NICEST);
                 gl.glDisable(GL10.GL_DITHER);
                 gl.glHint(GL10.GL_PERSPECTIVE_CORRECTION_HINT,
                         GL10.GL_FASTEST);
 
-                colShaders = new ShaderProgram();
-                String[] colShadersAttributes = new String[]{"vertexPosition", "vertexColour", "vertexNormal"};
-                colShaders.init(R.raw.col_vertex_shader, R.raw.col_fragment_shader, colShadersAttributes, this.getContext(), "kolorowanie");
-
-                texShaders = new ShaderProgram();
-                String[] texShadersAttributes = new String[]{"vertexPosition", "vertexTexCoord", "vertexNormal"};
-                texShaders.init(R.raw.tex_vertex_shader, R.raw.tex_fragment_shader, texShadersAttributes, this.getContext(), "teksturowanie");
+                gl.glEnable(GL10.GL_CULL_FACE);
             }
 
-            @Override
-            public void onDrawFrame(GL10 gl) {
-                GLES10.glActiveTexture(GLES10.GL_TEXTURE0);
-                GLES10.glBindTexture(GLES10.GL_TEXTURE_2D, crateTextureDataHandle);
-                gl.glClear(GL10.GL_COLOR_BUFFER_BIT | GL10.GL_DEPTH_BUFFER_BIT);
-                gl.glLoadIdentity();
 
-                gl.glTranslatef(0.0f, 0.0f, -10.0f);
-
-                float mCubeRotationAngleY = mCubeRotationAngleYBall;
-                float mCubeRotationAngleX = mCubeRotationAngleXBall;
-                if (isObstacle) {
-                    mCubeRotationAngleY = mCubeRotationAngleYObstacle;
-                    mCubeRotationAngleX = mCubeRotationAngleXObstacle;
-                }
-                gl.glRotatef(mCubeRotationAngleY, 0f, 1f, 0.0f);
-                gl.glRotatef(mCubeRotationAngleX, 1f, 0f, 0.0f);
-
-                mCube.draw(gl);
-                //mSphere.draw(gl);
-
-                gl.glLoadIdentity();
-            }
-
-            protected float[] projectionMatrix = new float[16];
-
-            @Override
-            public void onSurfaceChanged(GL10 gl, int width, int height) {
-                gl.glViewport(0, 0, width, height);
-                gl.glMatrixMode(GL10.GL_PROJECTION);
-                gl.glLoadIdentity();
-                GLU.gluPerspective(gl, 20.0f, (float) width / (float) height, 0.1f, 100.0f);
-                gl.glViewport(0, 0, width, height);
-
-                gl.glMatrixMode(GL10.GL_MODELVIEW);
-                gl.glLoadIdentity();
-
-
-                GLES20.glViewport(0, 0, width, height);
-
-                // Przygotowanie macierzy projekcji perspektywicznej z uwzględnieniem Field of View.
-                final float ratio = (float) width / height;
-                final float fov = 60;
-                final float near = 1.0f;
-                final float far = 10000.0f;
-                final float top = (float) (Math.tan(fov * Math.PI / 360.0f) * near);
-                final float bottom = -top;
-                final float left = ratio * bottom;
-                final float right = ratio * top;
-                Matrix.frustumM(projectionMatrix, 0, left, right, bottom, top, near, far);
-            }
-
-            public void loadTexture(Context context) {
-                final int[] textureHandle = new int[1];
-                GLES10.glGenTextures(1, textureHandle, 0);
-                final Options options = new Options();
-                options.inScaled = true;
-                final Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.golfball, options);
-
-                GLES10.glBindTexture(GLES10.GL_TEXTURE_2D, textureHandle[0]);
-                GLES10.glTexParameterf(GLES10.GL_TEXTURE_2D, GLES10.GL_TEXTURE_MIN_FILTER, GLES10.GL_NEAREST);
-                GLES10.glTexParameterf(GLES10.GL_TEXTURE_2D, GLES10.GL_TEXTURE_MAG_FILTER, GLES10.GL_LINEAR);
-                GLUtils.texImage2D(GLES10.GL_TEXTURE_2D, 0, bitmap, 0);
-                crateTextureDataHandle = textureHandle[0];
-                bitmap.recycle();
-            }
+//            @Override
+//            public void onSurfaceCreated(GL10 gl, EGLConfig config) {
+//                GLES20.glClearColor(0.2f, 0.5f, 0.1f, 1.0f);
+//
+//                GLES20.glEnable(GLES20.GL_CULL_FACE);
+//                GLES20.glEnable(GLES20.GL_DEPTH_TEST);
+//                GLES20.glDepthFunc(GLES20.GL_LEQUAL);
+//                GLES20.glDepthMask(true);
+//
+//                loadTexture(this.getContext());//,R.drawable.golfball);
+//
+//                gl.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+//
+//                gl.glClearDepthf(1.0f);
+//                gl.glEnable(GL10.GL_DEPTH_TEST);
+//                gl.glDepthFunc(GL10.GL_LEQUAL);
+//
+//                gl.glHint(GL10.GL_PERSPECTIVE_CORRECTION_HINT,
+//                        GL10.GL_NICEST);
+//
+//                gl.glDisable(GL10.GL_DITHER);
+//                gl.glHint(GL10.GL_PERSPECTIVE_CORRECTION_HINT,
+//                        GL10.GL_FASTEST);
+//
+//                colShaders = new ShaderProgram();
+//                String[] colShadersAttributes = new String[]{"vertexPosition", "vertexColour", "vertexNormal"};
+//                colShaders.init(R.raw.col_vertex_shader, R.raw.col_fragment_shader, colShadersAttributes, this.getContext(), "kolorowanie");
+//
+//                texShaders = new ShaderProgram();
+//                String[] texShadersAttributes = new String[]{"vertexPosition", "vertexTexCoord", "vertexNormal"};
+//                texShaders.init(R.raw.tex_vertex_shader, R.raw.tex_fragment_shader, texShadersAttributes, this.getContext(), "teksturowanie");
+//            }
+//
+//            @Override
+//            public void onDrawFrame(GL10 gl) {
+//                GLES10.glActiveTexture(GLES10.GL_TEXTURE0);
+//                GLES10.glBindTexture(GLES10.GL_TEXTURE_2D, crateTextureDataHandle);
+//                gl.glClear(GL10.GL_COLOR_BUFFER_BIT | GL10.GL_DEPTH_BUFFER_BIT);
+//                gl.glLoadIdentity();
+//
+//                gl.glTranslatef(0.0f, 0.0f, -10.0f);
+//
+//                float mCubeRotationAngleY = mCubeRotationAngleYBall;
+//                float mCubeRotationAngleX = mCubeRotationAngleXBall;
+//                if (isObstacle) {
+//                    mCubeRotationAngleY = mCubeRotationAngleYObstacle;
+//                    mCubeRotationAngleX = mCubeRotationAngleXObstacle;
+//                }
+//                gl.glRotatef(mCubeRotationAngleY, 0f, 1f, 0.0f);
+//                gl.glRotatef(mCubeRotationAngleX, 1f, 0f, 0.0f);
+//
+//                mCube.draw(gl);
+//                //mSphere.draw(gl);
+//
+//                gl.glLoadIdentity();
+//            }
+//
+//            protected float[] projectionMatrix = new float[16];
+//
+//            @Override
+//            public void onSurfaceChanged(GL10 gl, int width, int height) {
+//                gl.glViewport(0, 0, width, height);
+//                gl.glMatrixMode(GL10.GL_PROJECTION);
+//                gl.glLoadIdentity();
+//                GLU.gluPerspective(gl, 20.0f, (float) width / (float) height, 0.1f, 100.0f);
+//                gl.glViewport(0, 0, width, height);
+//
+//                gl.glMatrixMode(GL10.GL_MODELVIEW);
+//                gl.glLoadIdentity();
+//
+//
+//                GLES20.glViewport(0, 0, width, height);
+//
+//                // Przygotowanie macierzy projekcji perspektywicznej z uwzględnieniem Field of View.
+//                final float ratio = (float) width / height;
+//                final float fov = 60;
+//                final float near = 1.0f;
+//                final float far = 10000.0f;
+//                final float top = (float) (Math.tan(fov * Math.PI / 360.0f) * near);
+//                final float bottom = -top;
+//                final float left = ratio * bottom;
+//                final float right = ratio * top;
+//                Matrix.frustumM(projectionMatrix, 0, left, right, bottom, top, near, far);
+//            }
+//
+//            public void loadTexture(Context context) {
+//                final int[] textureHandle = new int[1];
+//                GLES10.glGenTextures(1, textureHandle, 0);
+//                final Options options = new Options();
+//                options.inScaled = true;
+//                final Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.golfball, options);
+//
+//                GLES10.glBindTexture(GLES10.GL_TEXTURE_2D, textureHandle[0]);
+//                GLES10.glTexParameterf(GLES10.GL_TEXTURE_2D, GLES10.GL_TEXTURE_MIN_FILTER, GLES10.GL_NEAREST);
+//                GLES10.glTexParameterf(GLES10.GL_TEXTURE_2D, GLES10.GL_TEXTURE_MAG_FILTER, GLES10.GL_LINEAR);
+//                GLUtils.texImage2D(GLES10.GL_TEXTURE_2D, 0, bitmap, 0);
+//                crateTextureDataHandle = textureHandle[0];
+//                bitmap.recycle();
+//            }
 
 
 //            public  int loadTexture(final Context context, final int resourceId)
@@ -625,6 +761,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 
         class Environment {
             Environment() {
+
                 golfBall = new GolfBall(getContext(), false);
                 //for 2d golf ball
                 if (TWO_D) {
@@ -632,9 +769,11 @@ public class MainActivity extends Activity implements SensorEventListener {
 //                    golfBall.setLayerType(LAYER_TYPE_HARDWARE, null);
                     golfBall.setRenderer(new GolfBall(getContext(), false));
                 } else {
-                    golfBall.setRenderer(new OpenGLRenderer4());
+//                    golfBall.setRenderer(new OpenGLRenderer4());
+                    //golfBall.setRenderer(new GlRenderer(getContext()));
+                    golfBall.setRenderer(new GolfBall(getContext(), false));
                 }
-                addView(golfBall, new ViewGroup.LayoutParams(dstWidth, dstHeight));
+                addView(golfBall, new ViewGroup.LayoutParams((int) (dstWidth * ballScale), (int) (dstHeight * ballScale)));
 
                 obstacle = new Obstacle(getContext());
                 obstacle.setRenderer(new Obstacle(getContext()));
