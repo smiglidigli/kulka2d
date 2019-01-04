@@ -486,29 +486,29 @@ public class MainActivity extends Activity implements SensorEventListener {
             }
 
             public void resolveCollisionWithBounds() {
-                final float xMax = horizontalBoundary;
-                final float yMax = verticalBoundary;
-                final float x = positionX;
-                final float y = positionY;
+//                final float horizontalBoundary = GameView.this.horizontalBoundary;
+//                final float verticalBoundary = GameView.this.verticalBoundary;
+//                final float positionX = this.positionX;
+//                final float positionY = this.positionY;
 
                 float newXPosition = CalculateCoordsOnScreen(BORDER_THICKNESS, true);
                 float newYPosition = CalculateCoordsOnScreen(BORDER_THICKNESS, false);
 
-                if (x > xMax - newXPosition) {
-                    positionX = xMax - newXPosition;
+                if (positionX > horizontalBoundary - newXPosition - CalculateCoordsOnScreen(dstWidth, true) * (ballScale - 1)) {
+                    this.positionX = horizontalBoundary - newXPosition - CalculateCoordsOnScreen(dstWidth, true) * (ballScale - 1);
                     if (!isObstacle) velocityX = velocityX * -0.5f;
                     else velocityX = -velocityX;
-                } else if (x < -xMax + newXPosition) {
-                    positionX = -xMax + newXPosition;
+                } else if (positionX < -horizontalBoundary + newXPosition) {
+                    this.positionX = -horizontalBoundary + newXPosition;
                     if (!isObstacle) velocityX = velocityX * -0.5f;
                     else velocityX = -velocityX;
                 }
-                if (y > yMax - newYPosition) {
-                    positionY = yMax - newYPosition;
+                if (positionY > verticalBoundary - newYPosition) {
+                    this.positionY = verticalBoundary - newYPosition;
                     if (!isObstacle) velocityY = velocityY * -0.5f;
                     else velocityY = -velocityY;
-                } else if (y < -yMax + newYPosition) {
-                    positionY = -yMax + newYPosition;
+                } else if (positionY < -verticalBoundary + newYPosition + CalculateCoordsOnScreen(dstHeight, false) * (ballScale - 1)) {
+                    this.positionY = -verticalBoundary + newYPosition + CalculateCoordsOnScreen(dstHeight, false) * (ballScale - 1);
                     if (!isObstacle) velocityY = velocityY * -0.5f;
                     else velocityY = -velocityY;
                 }
@@ -543,16 +543,16 @@ public class MainActivity extends Activity implements SensorEventListener {
 
                     if (obstacleAt.getKey() == "bottomBorder") {
                         this.positionY = bottomBorder;
-                        velocityY = velocityY * -0.5f;
+                        velocityY = velocityY * -1.0f;
                     } else if (obstacleAt.getKey() == "topBorder") {
                         this.positionY = topBorder;
-                        velocityY = velocityY * -0.5f;
+                        velocityY = velocityY * -1.0f;
                     } else if (obstacleAt.getKey() == "leftBorder") {
                         this.positionX = leftBorder;
-                        velocityX = velocityX * -0.5f;
+                        velocityX = velocityX * -1.0f;
                     } else if (obstacleAt.getKey() == "rightBorder") {
                         this.positionX = rightBorder;
-                        velocityX = velocityX * -0.5f;
+                        velocityX = velocityX * -1.0f;
                     }
                 }
             }
