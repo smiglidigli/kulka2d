@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.PixelFormat;
+import android.opengl.GLES20;
 import android.opengl.GLUtils;
 
 import java.nio.ByteBuffer;

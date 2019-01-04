@@ -89,8 +89,11 @@ public class MainActivity extends Activity implements SensorEventListener {
     public float ballScale = 1f;
     SeekBar ballScaleBar;
 
-    private  int dstWidth;
-    private  int dstHeight;
+    private int dstWidth;
+    private int dstHeight;
+
+    //earth with the code from:
+    //https://bitbucket.org/jimcornmell/opengltexturedsphere/src/68c07d05c06159475b09473bda752d045a44b17f/app/src/main/java/com/jimscosmos/opengl/MainApp.java?at=master&fileviewer=file-view-default
 
     private static int AXIAL_TILT_DEGREES = 30;
 
@@ -184,10 +187,10 @@ public class MainActivity extends Activity implements SensorEventListener {
         @Override
         public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
             // updated continuously as the user slides the thumb
-            ballScale = 1 + (float)progress/25f;
+            ballScale = 1 + (float) progress / 25f;
             android.view.ViewGroup.LayoutParams lp = golfBall.getLayoutParams();
-            lp.height = (int)(dstHeight * ballScale);
-            lp.width = (int)(dstWidth * ballScale);
+            lp.height = (int) (dstHeight * ballScale);
+            lp.width = (int) (dstWidth * ballScale);
             golfBall.setLayoutParams(lp);
         }
 
@@ -248,7 +251,6 @@ public class MainActivity extends Activity implements SensorEventListener {
 
     class GameView extends FrameLayout implements SensorEventListener {
         private static final float ballDiameter = 0.01f;
-
 
 
         private Sensor accelerometer;
@@ -430,22 +432,13 @@ public class MainActivity extends Activity implements SensorEventListener {
             private float velocityY = 0.5f;
             private boolean isObstacle;
 
-//            /** Store our model data in a float buffer. */
-//            private final FloatBuffer mCubeTextureCoordinates;
-//            /** This will be used to pass in the texture. */
-//            private int mTextureUniformHandle;
-//            /** This will be used to pass in model texture coordinate information. */
-//            private int mTextureCoordinateHandle;
-//            /** Size of the texture coordinate data in elements. */
-//            private final int mTextureCoordinateDataSize = 2;
-//            /** This is a handle to our texture data. */
-//            private int mTextureDataHandle;
 
             public GolfBall(Context context, boolean isObstacle) {
                 super(context);
-                setZOrderOnTop(true);
+
                 setEGLConfigChooser(8, 8, 8, 8, 16, 0);
                 getHolder().setFormat(PixelFormat.TRANSLUCENT);
+                setZOrderOnTop(true);
                 this.isObstacle = isObstacle;
                 mContext = context;
                 mEarth = new EarthSphere(3, 2);
@@ -453,9 +446,10 @@ public class MainActivity extends Activity implements SensorEventListener {
 
             public GolfBall(Context context, AttributeSet attrs, boolean isObstacle) {
                 super(context, attrs);
-                setZOrderOnTop(true);
+
                 setEGLConfigChooser(8, 8, 8, 8, 16, 0);
                 getHolder().setFormat(PixelFormat.TRANSLUCENT);
+                setZOrderOnTop(true);
                 mContext = context;
                 mEarth = new EarthSphere(3, 2);
                 this.isObstacle = isObstacle;
@@ -523,22 +517,22 @@ public class MainActivity extends Activity implements SensorEventListener {
             public void resolveCollisionWithObstacles() {
 //                final float obstacleX = horizontalBoundary / 2;
 //                final float obstacleY = verticalBoundary / 2;
-                float leftBorder = obstacleX - CalculateCoordsOnScreen(dstWidth * ballScale, true);
-                float rightBorder = obstacleX + CalculateCoordsOnScreen(dstWidth * ballScale, true);
-                float topBorder = -obstacleY - CalculateCoordsOnScreen(dstHeight* ballScale, true);
-                float bottomBorder = -obstacleY + CalculateCoordsOnScreen(dstHeight* ballScale, true);
-                final float x = positionX;
-                final float y = positionY;
+                float leftBorder = obstacleX - CalculateCoordsOnScreen(dstWidth, true);
+                float rightBorder = obstacleX + CalculateCoordsOnScreen(dstWidth, true);
+                float topBorder = -obstacleY - CalculateCoordsOnScreen(dstHeight, true);
+                float bottomBorder = -obstacleY + CalculateCoordsOnScreen(dstHeight, true);
+//                final float positionX = this.positionX;
+//                final float positionY = this.positionY;
 
-                if (Helpers.IsBetween(x, leftBorder, rightBorder) &&
-                        Helpers.IsBetween(y, topBorder, bottomBorder))
+                if (Helpers.IsBetween(positionX, leftBorder, rightBorder) &&
+                        Helpers.IsBetween(positionY, topBorder, bottomBorder))
                 //minuses before obstacles due to some bug in setting up the position
                 {
                     Map<String, Float> borders = new HashMap<String, Float>();
-                    borders.put("leftBorder", abs(leftBorder) - abs(x));
-                    borders.put("rightBorder", abs(rightBorder) - abs(x));
-                    borders.put("topBorder", abs(topBorder) - abs(y));
-                    borders.put("bottomBorder", abs(bottomBorder) - abs(y));
+                    borders.put("leftBorder", abs(leftBorder - positionX));
+                    borders.put("rightBorder", abs(rightBorder - positionX));
+                    borders.put("topBorder", abs(topBorder - positionY));
+                    borders.put("bottomBorder", abs(bottomBorder - positionY));
 
                     Map.Entry<String, Float> obstacleAt = null;
                     for (Map.Entry<String, Float> entry : borders.entrySet()) {
@@ -548,16 +542,16 @@ public class MainActivity extends Activity implements SensorEventListener {
                     }
 
                     if (obstacleAt.getKey() == "bottomBorder") {
-                        positionY = bottomBorder;
+                        this.positionY = bottomBorder;
                         velocityY = velocityY * -0.5f;
                     } else if (obstacleAt.getKey() == "topBorder") {
-                        positionY = topBorder;
+                        this.positionY = topBorder;
                         velocityY = velocityY * -0.5f;
                     } else if (obstacleAt.getKey() == "leftBorder") {
-                        positionX = leftBorder;
+                        this.positionX = leftBorder;
                         velocityX = velocityX * -0.5f;
                     } else if (obstacleAt.getKey() == "rightBorder") {
-                        positionX = rightBorder;
+                        this.positionX = rightBorder;
                         velocityX = velocityX * -0.5f;
                     }
                 }
@@ -582,7 +576,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 
             @Override
             public void onDrawFrame(final GL10 gl) {
-                gl.glClearColor(0.5f, 0.5f, 0.5f, 0.0f);
+                gl.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
                 gl.glClear(GL10.GL_COLOR_BUFFER_BIT | GL10.GL_DEPTH_BUFFER_BIT);
                 gl.glLoadIdentity();
                 gl.glTranslatef(0.0f, 0.0f, OBJECT_DISTANCE);
